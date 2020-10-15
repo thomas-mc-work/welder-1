@@ -1,24 +1,49 @@
-#!/usr/bin/env ruby
-#
-# Parses templates using Liquid
-#
-require 'yaml'
-require 'fileutils'
-require 'liquid'
+#!/usr/bin/env python3
 
-Liquid::Template.error_mode = :strict
+import os
+import sys
+from pathlib import Path
+from typing import Dict, List
 
-files_path  = ARGV[0]
-config_path = "./config.yml"
-vault_path  = "./vault.yml"
+from ruamel import yaml
+from jinja2 import Template
 
-config = {}
-config = YAML.load_file(config_path) if File.exists?(config_path)
-config = config.merge(YAML.load_file(vault_path)) if File.exists?(vault_path)
+EXTENSIONS = [
+    '.liquid',  # for backwards compatibility
+    '.j2'
+]
 
-Dir["#{files_path}/modules/**/*.liquid"].each do |tpl|
-  template = Liquid::Template.parse(File.read(tpl))
-  parsed = template.render(config, { strict_variables: true })
+# where the template files can be read + written
+files_path = Path(sys.argv[1])
 
-  File.write(tpl.gsub('.liquid', ''), parsed)
-end
+yaml_file_paths = sys.argv[2:]
+
+
+def load_config(files: List) -> Dict:
+    config = {}
+
+    for file in files:
+        with open(file) as stream:
+            config.update(yaml.safe_load(stream) or {})
+
+    return config
+
+
+def iterate_templates(root_path: Path, values: Dict):
+    for root, dirs, files in os.walk(root_path):
+        for file_path in files:
+            template_file = Path(root, file_path)
+
+            for extension in EXTENSIONS:
+                if template_file.name.endswith(extension):
+                    out_file = Path(root, template_file.name[:-len(extension)])
+
+                    template = Template(template_file.read_text())
+                    out_file.write_text(template.render(values))
+
+                    break
+
+
+if __name__ == '__main__':
+    config = load_config(yaml_file_paths)
+    iterate_templates(files_path, config)

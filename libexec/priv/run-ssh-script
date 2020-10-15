@@ -3,14 +3,13 @@
 # This script wraps the `ssh` command in an `expect` script,
 # to automatically enter sudo passwords for the user.
 #
-set url [lindex $argv 0];
-set ssh_port [lindex $argv 1];
-set command [lindex $argv 2];
-set sudo_pass [lindex $argv 3];
+
+set sudo_pass "$env(SUDO_PASS)";
 
 set timeout -1
 
-spawn -noecho ssh -t $url -p $ssh_port $command
+spawn -noecho {*}$argv
+#expect -exact "Password: "
 expect -exact "\[sudo\] password for "
 send -- "$sudo_pass\r"
 interact

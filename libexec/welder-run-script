@@ -2,19 +2,17 @@
 #
 # welder-run-script
 #
+set -o nounset   ## set -u : exit the script if you try to use an uninitialised variable
+set -o errexit   ## set -e : exit the script if any statement returns a non-true return value
 
-[ -n "$DEBUG" ] && set -v
-
-set -eu
-
-playbook=$1
-script=$2
+playbook="$1"
+script="$2"
 
 [ -z "$playbook" ]       && __fail "Usage: x run-script <playbook-name>"
-[ ! -f ./$playbook.yml ] && __fail "No $playbook.yml file found"
+[ ! -f ./$playbook.yml ] && __fail "No ${playbook}.yml file found"
 
 __load_config "$playbook.yml"
 
-ssh -t "$cfg_ssh_url" -p "$cfg_ssh_port" "$(< $script)"
+ssh -t "$W_SSH_URL" -p "$W_SSH_PORT" "$(< $script)"
 
 __success "done!"

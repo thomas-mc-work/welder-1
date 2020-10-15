@@ -1,36 +1,45 @@
-#!/bin/bash
 
-function __info () {
+__info () {
   printf "  [ \033[00;34m..\033[0m ] $1"
 }
 
-function __success () {
+__success () {
   printf "\r\033[2K  [ \033[00;32mOK\033[0m ] $1\n"
 }
 
-function __user () {
+__user () {
   printf "\r  [ \033[0;33m??\033[0m ] $1"
 }
 
-function __fail () {
+__warn () {
+  printf "\033[2K  [\033[1;33mWARN\033[0m] $1\n"
+}
+
+__fail () {
   printf "\r\033[2K  [\033[0;31mFAIL\033[0m] $1\n"
   echo ''
   exit 1
 }
 
-function __ensure_rsync() {
+__ensure_rsync() {
   if ! command -v rsync > /dev/null; then
     __fail "Please install rsync first"
   fi
 }
 
-function __load_config() {
-  [ ! -f ./$1 ] && __fail "No $1 file found"
+__load_config() {
+  config_file="$1"
+  [ ! -f "$config_file" ] && __fail "No "$config_file" file found"
 
   # seems to fail with process substitution in bash, e.g.:
-  #     source <($WELDER_ROOT/libexec/priv/parse-config $1)
-  source /dev/stdin <<< "$(cat <($WELDER_ROOT/libexec/priv/parse-config ./$1))"
+  #     . <($WELDER_ROOT/libexec/priv/parse-config $1)
+  . /dev/stdin <<< "$(cat <($WELDER_ROOT/libexec/priv/parse-config "$config_file" "W_"))"
 
-  if [ -z "${cfg_ssh_url-}" ];  then __fail "ssh_url variable must be set in $playbook.yml"; fi
-  if [ -z "${cfg_ssh_port-}" ]; then cfg_ssh_port="22"; fi
+  if [ -z "${W_SSH_URL-}" ];  then __fail "ssh_url variable must be set in $playbook.yml"; fi
+  if [ -z "${W_SSH_PORT-}" ]; then W_SSH_PORT="22"; fi
+}
+
+__load_secrets() {
+  file="$1"
+  "${WELDER_ROOT}/libexec/priv/resolve-secrets" "$file"
 }

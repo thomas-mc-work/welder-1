@@ -1,18 +1,64 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env python3
+# Parse a given YAML file and create a shell snippet providing the results.
 #
-# Parses yaml config and returns values as a bash-compatible variables
-#
-require 'yaml'
+# param 1: path to YAML file
+# param 2: (optional) Prefix for each generated line, e.g. MY_VALUE=7 => export MY_VALUE=7
+# param 3: (optional) Comma separated list of keys to be omitted
 
-file = ARGV.first
-if file.nil? || !File.exist?(file)
-  STDERR.puts "Pass a valid yaml file path"
-  abort
-end
+import shlex
+import sys
 
-config = YAML::load_file(file).map do |k, v|
-  v = v.is_a?(Array) ? "(#{v.join(' ')})" : "'#{v}'"
-  "cfg_#{k}=#{v}"
-end
+from ruamel import yaml
 
-puts config.join("\n")
+file = sys.argv[1]
+
+line_prefix = sys.argv[2] if len(sys.argv) > 2 else ''
+excluded_keys = sys.argv[3].split(',') if len(sys.argv) > 3 else []
+
+if len(sys.argv) < 2:
+    print("Pass a valid yaml file path", file=sys.stderr)
+    exit(1)
+
+
+def flatten(d):
+    items = []
+    for new_key, v in d.items():
+        try:
+            items.extend(flatten(v, new_key).items())
+        except:
+            items.append((new_key, v))
+    return dict(items)
+
+
+try:
+    with open(file) as stream:
+        content = yaml.safe_load(stream) or dict()
+
+        result = {}
+
+        # flatten all keys into a shallow list
+        # e.g. { a: { b: 4 }} => A_B=4
+        flat_content = flatten(content)
+
+        for key_raw in flat_content:
+            value_raw = flat_content[key_raw]
+            key = key_raw.upper()
+
+            if key in excluded_keys:
+                continue
+
+            if isinstance(value_raw, list):
+                values_quoted = [shlex.quote(item) for item in value_raw]
+                value = '(' + ' '.join(values_quoted) + ')'
+            elif isinstance(value_raw, bool):
+                value = 1 if value_raw else 0
+            else:
+                value = shlex.quote(value_raw)
+
+            print('{}{}={}'.format(line_prefix, key, value))
+except yaml.YAMLError as exc:
+    print(exc, file=sys.stderr)
+    sys.exit(1)
+except FileNotFoundError as fe:
+    print(fe, file=sys.stderr)
+    sys.exit(1)

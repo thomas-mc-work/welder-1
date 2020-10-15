@@ -38,24 +38,24 @@ An example directory structure:
 
 ~~~ sh
 ├── modules
-│   ├── nginx
-│   │   ├── files
-│   │   │   ├── nginx.conf
-│   │   └── setup.sh
-│   ├── rails
-│   │   ├── files
-│   │   │   ├── nginx
-│   │   │   │   ├── site.conf.liquid
-│   │   │   ├── systemd
-│   │   │   │   ├── puma.service.liquid
-│   │   │   │   └── sidekiq.service.liquid
-│   │   │   └── rbenv-vars.liquid
-│   │   └── setup.sh
-│   ├── system
-│   │   ├── files
-│   │   │   ├── 10periodic
-│   │   │   └── 50unattended-upgrades
-│   │   └── setup.sh
+│   ├── nginx
+│   │   ├── files
+│   │   │   ├── nginx.conf
+│   │   └── setup.sh
+│   ├── rails
+│   │   ├── files
+│   │   │   ├── nginx
+│   │   │   │   ├── site.conf.liquid
+│   │   │   ├── systemd
+│   │   │   │   ├── puma.service.liquid
+│   │   │   │   └── sidekiq.service.liquid
+│   │   │   └── rbenv-vars.liquid
+│   │   └── setup.sh
+│   ├── system
+│   │   ├── files
+│   │   │   ├── 10periodic
+│   │   │   └── 50unattended-upgrades
+│   │   └── setup.sh
 ├── config.yml
 ├── vault.yml
 ├── vault.yml.gpg
@@ -160,6 +160,7 @@ echo $cfg_app_dir
 **NOTE**: In order for this to work reliably, `config.yml` has to be fairly flat
 and simple - nested hashes are not supported.
 
+For local settings variables can be defined in `$playbook.yml`.
 
 ### Shared Modules
 

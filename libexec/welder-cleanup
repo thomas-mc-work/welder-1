@@ -2,18 +2,16 @@
 #
 # Removes compiled files from the server
 #
+set -o nounset   ## set -u : exit the script if you try to use an uninitialised variable
+set -o errexit   ## set -e : exit the script if any statement returns a non-true return value
 
-[ -n "$DEBUG" ] && set -v
+. $WELDER_ROOT/libexec/priv/_helpers
 
-set -eu
-
-source $WELDER_ROOT/libexec/priv/_helpers
-
-playbook=$1
+playbook="$1"
 [ -z "$playbook" ] && __fail "Usage: x cleanup <playbook-name>"
 
 __load_config "$playbook.yml"
 
-ssh $cfg_ssh_url -p $cfg_ssh_port "rm -r setup/"
+ssh "$W_SSH_URL" -p "$W_SSH_PORT" "rm -rf .welder/"
 
-__success "setup/ directory removed from $cfg_ssh_url"
+__success "data directory removed from ${W_SSH_URL}"

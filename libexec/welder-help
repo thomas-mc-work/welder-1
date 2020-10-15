@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
-echo "Usage: welder <subcommand> [options]"
-echo
-echo "Subcommands:"
-echo "    run      run scripts on the server"
-echo "    version  welder version"
-echo ""
+cat << EOB
+Usage: welder <subcommand> [options]
 
+Subcommands:
+    run      run scripts on the server
+    version  welder version
+
+EOB
